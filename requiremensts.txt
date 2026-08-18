@@ -1,0 +1,15 @@
+# Core RAG Dependencies
+faiss-cpu==1.15.0
+sentence-transformers==5.7.0
+datasets==5.0.1
+python-dotenv==1.2.3
+
+# LLM Providers & Voice STT
+google-generativeai==0.8.6
+groq==1.6.0
+elevenlabs==2.64.0
+
+# API Backend & Server
+fastapi==0.141.1
+uvicorn==0.52.3
+python-multipart==0.0.32

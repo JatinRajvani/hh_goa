@@ -1,0 +1,30 @@
+# Environment Variables (CRITICAL: Do NOT push API keys)
+.env
+
+# Python Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Python caching
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local data and large vector indices
+data/index/
+data/raw/
+data/processed/evaluation_results.json
+data/processed/chunking_experiments.json
+
+# Audio uploads/recordings (temp files)
+*.wav
+*.mp3
+*.webm
+*.ogg
+
+# IDE Settings
+.vscode/
+.idea/
+.DS_Store

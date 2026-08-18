@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice-Enabled RAG Portal</title>
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <i class="fa-solid fa-microphone-lines accent-icon"></i>
+                <h1>Voice RAG <span class="accent-text">Portal</span></h1>
+            </div>
+            <div class="dataset-tag">
+                <i class="fa-solid fa-database"></i> MSMARCO-XI English Corpus
+            </div>
+        </header>
+
+        <!-- Main Dashboard -->
+        <main class="dashboard-grid">
+            <!-- Left Panel: Input -->
+            <section class="input-panel glass-card">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-circle-nodes"></i> Query Input</h2>
+                    <p>Speak your question or type it below</p>
+                </div>
+
+                <!-- Voice Recording Area -->
+                <div class="voice-input-container">
+                    <button id="mic-btn" class="mic-button" title="Hold to record query">
+                        <i class="fa-solid fa-microphone"></i>
+                        <span class="pulse-ring"></span>
+                    </button>
+                    <div id="recording-status" class="recording-status-text">Click mic to start recording</div>
+                    <div id="recording-timer" class="recording-timer-text">00:00</div>
+                </div>
+
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+
+                <!-- Text Input Area -->
+                <form id="query-form" class="text-input-container">
+                    <div class="input-wrapper">
+                        <input type="text" id="query-input" placeholder="Type your query here..." required autocomplete="off">
+                        <button type="submit" id="submit-btn" class="submit-button">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Right Panel: Results & Performance -->
+            <section class="output-panel">
+                <!-- Grounded Answer Card -->
+                <div class="answer-card glass-card">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-sparkles"></i> Grounded Answer</h2>
+                        <span id="relevance-badge" class="badge">Awaiting Query</span>
+                    </div>
+                    
+                    <div class="transcript-display hidden" id="transcript-container">
+                        <strong><i class="fa-solid fa-quote-left"></i> Transcript:</strong> 
+                        <span id="transcript-text"></span>
+                    </div>
+
+                    <div class="answer-content">
+                        <div id="loader" class="loader hidden">
+                            <div class="spinner"></div>
+                            <p id="loader-status">Processing audio...</p>
+                        </div>
+                        <div id="answer-text-display" class="answer-placeholder-text">
+                            Your RAG-generated answer will appear here. Press the microphone button or submit a text query to retrieve grounded context.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Latency Cards -->
+                <div class="latency-grid">
+                    <div class="latency-card glass-card">
+                        <div class="latency-label">STT Transcription</div>
+                        <div class="latency-value" id="latency-stt">-</div>
+                        <div class="latency-icon"><i class="fa-solid fa-waveform"></i></div>
+                    </div>
+                    <div class="latency-card glass-card">
+                        <div class="latency-label">Vector Retrieval</div>
+                        <div class="latency-value" id="latency-retrieval">-</div>
+                        <div class="latency-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+                    </div>
+                    <div class="latency-card glass-card">
+                        <div class="latency-label">LLM Generation</div>
+                        <div class="latency-value" id="latency-gen">-</div>
+                        <div class="latency-icon"><i class="fa-solid fa-brain"></i></div>
+                    </div>
+                    <div class="latency-card glass-card accent-card">
+                        <div class="latency-label">Total RAG Time</div>
+                        <div class="latency-value" id="latency-total">-</div>
+                        <div class="latency-icon"><i class="fa-solid fa-bolt"></i></div>
+                    </div>
+                </div>
+
+                <!-- Sources Card -->
+                <div class="sources-card glass-card">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-book-open"></i> Retrieved Source Passages</h2>
+                        <span class="sources-count" id="sources-count">0 Sources</span>
+                    </div>
+                    <div id="sources-list" class="sources-list">
+                        <div class="sources-placeholder">
+                            No sources retrieved yet.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overall System Benchmarks Card -->
+                <div class="system-stats-card glass-card">
+                    <div class="panel-header animate-header">
+                        <h2><i class="fa-solid fa-chart-line"></i> Pipeline System Performance Analytics</h2>
+                        <span class="sources-count" id="eval-timestamp">Awaiting Load</span>
+                    </div>
+                    <div class="stats-container">
+                        <!-- Retrieval Analytics Column -->
+                        <div class="stats-column">
+                            <h3>Vector Retrieval</h3>
+                            <div class="stat-row">
+                                <span>P50 (Median) Latency:</span>
+                                <strong id="eval-retrieval-p50">-</strong>
+                            </div>
+                            <div class="stat-row">
+                                <span>P70 Latency:</span>
+                                <strong id="eval-retrieval-p70">-</strong>
+                            </div>
+                            <div class="stat-row">
+                                <span>P100 (Max) Latency:</span>
+                                <strong id="eval-retrieval-p100">-</strong>
+                            </div>
+                            <div class="stat-row">
+                                <span>Recall@5 Accuracy:</span>
+                                <strong id="eval-recall" class="stat-highlight">-</strong>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-divider-v"></div>
+                        
+                        <!-- RAG Analytics Column -->
+                        <div class="stats-column">
+                            <h3>End-to-End RAG</h3>
+                            <div class="stat-row">
+                                <span>P50 (Median) Latency:</span>
+                                <strong id="eval-rag-p50">-</strong>
+                            </div>
+                            <div class="stat-row">
+                                <span>P70 Latency:</span>
+                                <strong id="eval-rag-p70">-</strong>
+                            </div>
+                            <div class="stat-row">
+                                <span>P100 (Max) Latency:</span>
+                                <strong id="eval-rag-p100">-</strong>
+                            </div>
+                            <div class="stat-row">
+                                <span>Total Queries Tested:</span>
+                                <strong id="eval-count">-</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer>
+            <p>Voice-Enabled RAG Pipeline | Phase 8 Release | Low Latency Vector Search & Grounding</p>
+        </footer>
+    </div>
+
+    <!-- Main JavaScript Logic -->
+    <script src="app.js"></script>
+</body>
+</html>

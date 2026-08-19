@@ -28,3 +28,7 @@ data/processed/chunking_experiments.json
 .vscode/
 .idea/
 .DS_Store
+
+# Reference files
+ref.md
+

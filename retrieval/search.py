@@ -3,8 +3,6 @@ import sys
 import json
 import time
 import argparse
-import faiss
-from sentence_transformers import SentenceTransformer
 
 # Safely reconfigure standard streams to UTF-8 for Windows command line compatibility
 if hasattr(sys.stdout, 'reconfigure'):
@@ -45,6 +43,7 @@ class RetrievalService:
         """Loads the SentenceTransformer embedding model on demand if not already loaded."""
         if not self.model:
             print(f"Loading embedding model '{self.model_name}' on demand...")
+            from sentence_transformers import SentenceTransformer
             self.model = SentenceTransformer(self.model_name)
             print("Embedding model loaded successfully.")
 
@@ -95,6 +94,7 @@ class RetrievalService:
                 )
                 
         print(f"Loading FAISS index for '{lang}' from {index_file}...")
+        import faiss
         self.indices[lang] = faiss.read_index(index_file)
         
         print(f"Loading document mapping for '{lang}' from {map_file}...")
@@ -157,6 +157,7 @@ class RetrievalService:
         query_vector = query_vector.astype("float32").reshape(1, -1)
         
         # 2. Normalize vector (IP with L2 normalized vectors is Cosine Similarity)
+        import faiss
         faiss.normalize_L2(query_vector)
         
         # 3. Perform FAISS search

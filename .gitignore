@@ -13,7 +13,8 @@ __pycache__/
 *$py.class
 
 # Local data and large vector indices
-data/index/
+data/index/*
+!data/index/*.json
 data/raw/
 data/processed/evaluation_results.json
 data/processed/chunking_experiments.json

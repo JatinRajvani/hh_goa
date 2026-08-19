@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome for Premium Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="index.css?v=1.1">
+    <link rel="stylesheet" href="index.css?v=1.2">
 </head>
 <body>
     <div class="app-container">
@@ -41,13 +41,22 @@
                         <option value="ne" style="background:#171b26;">Nepali (नेपाली)</option>
                     </select>
                 </div>
-                <div class="dataset-tag" style="display: flex; align-items: center; gap: 8px; user-select: none;">
-                    <i class="fa-solid fa-robot"></i> Conversational LLM
-                    <label class="switch-container" style="position: relative; display: inline-block; width: 34px; height: 20px;">
+                <div class="dataset-tag">
+                    <i class="fa-solid fa-gears"></i> Engine: 
+                    <select id="engine-select" class="lang-select" style="background:none; border:none; color:var(--text-primary); font-weight:600; outline:none; cursor:pointer;">
+                        <option value="default" style="background:#171b26;">Auto-Detect</option>
+                        <option value="dense" style="background:#171b26;">Semantic (FAISS)</option>
+                        <option value="sparse" style="background:#171b26;" selected>Keyword (BM25)</option>
+                    </select>
+                </div>
+                <label class="dataset-tag" style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; transition: background 0.3s ease;">
+                    <i class="fa-solid fa-robot" style="transition: color 0.3s ease;" id="llm-robot-icon"></i>
+                    <span id="llm-status-text" style="font-weight: 600; font-size: 0.85rem; transition: color 0.3s ease;">Conversational LLM: OFF</span>
+                    <div class="switch-container" style="position: relative; display: inline-block; width: 44px; height: 24px; margin-left: 4px;">
                         <input type="checkbox" id="llm-toggle" style="opacity: 0; width: 0; height: 0;">
                         <span class="slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.15); transition: .4s; border-radius: 20px; display: block;"></span>
-                    </label>
-                </div>
+                    </div>
+                </label>
                 <div class="dataset-tag">
                     <i class="fa-solid fa-database"></i> MSMARCO-XI
                 </div>
@@ -124,7 +133,7 @@
                         <div class="latency-icon"><i class="fa-solid fa-waveform"></i></div>
                     </div>
                     <div class="latency-card glass-card">
-                        <div class="latency-label">Vector Retrieval</div>
+                        <div class="latency-label" id="retrieval-label">Lexical Retrieval <span class="badge" style="font-size:8px; padding:1px 4px; margin-left:4px; background:rgba(255,255,255,0.08); color:var(--text-secondary);">BM25</span></div>
                         <div class="latency-value" id="latency-retrieval">-</div>
                         <div class="latency-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
                     </div>

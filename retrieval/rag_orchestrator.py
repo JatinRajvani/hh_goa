@@ -23,7 +23,23 @@ from retrieval.stt_service import STTService
 # Load environment variables
 load_dotenv()
 
-FALLBACK_MESSAGE = "I couldn't find sufficient information in the provided knowledge base to answer that reliably."
+FALLBACK_MESSAGES = {
+    "en": "I couldn't find sufficient information in the provided knowledge base to answer that reliably.",
+    "hi": "मुझे प्रदान की गई जानकारी में इसका उत्तर नहीं मिला।",
+    "gu": "મને પ્રદાન કરેલી માહિતીમાં આનો ઉત્તર મળ્યો નથી.",
+    "ta": "வழங்கப்பட்ட அறிவுத் தளத்தில் பதிலளிக்க போதுமான தகவல் கிடைக்கவில்லை.",
+    "mr": "दिलेल्या माहितीमध्ये याचे उत्तर सापडले नाही.",
+    "ur": "فراہم کردہ معلومات میں اس کا جواب نہیں ملا۔",
+    "bn": "প্রদত্ত তথ্যের মধ্যে এর উত্তর পাওয়া যায়নি।",
+    "kn": "ಒದಗಿಸಿದ ಮಾಹಿತಿ ಮೂಲಗಳಲ್ಲಿ ಇದಕ್ಕೆ ಉತ್ತರ ಕಂಡುಬಂದಿಲ್ಲ.",
+    "ml": "നൽകിയിട്ടുള്ള വിവരങ്ങളിൽ ഇതിനുള്ള ഉത്തരം കണ്ടെത്താനായില്ല.",
+    "pa": "ਦਿੱਤੀ ਗਈ ਜਾਣਕਾਰੀ ਵਿੱਚ ਇਸਦਾ ਉੱਤਰ ਨਹੀਂ ਮਿਲਿਆ।",
+    "or": "ପ୍ରଦତ୍ତ ସୂଚନା ମଧ୍ୟରେ ଏହାର ଉତ୍ତର ମିଳିଲା ନାହିଁ ।",
+    "as": "প্ৰদান কৰা তথ্যৰ ভিতৰত ইয়াৰ উত্তৰ পোৱা নগ’ল।",
+    "sa": "प्रदत्तायां सूचनायां अस्य उत्तरं न प्राप्तम्।",
+    "ne": "प्रदान गरिएको जानकारीमा यसको उत्तर भेटिएन."
+}
+
 
 class RAGOrchestrator:
     def __init__(self, index_dir="data/index"):
@@ -40,7 +56,7 @@ class RAGOrchestrator:
             
         print(f"RAG Orchestrator initialized. Relevance threshold: {self.threshold}")
         
-    def _build_prompt(self, query: str, passages: list[dict]) -> str:
+    def _build_prompt(self, query: str, passages: list[dict], lang: str = "en") -> str:
         """Constructs the grounding prompt for the LLM."""
         context_blocks = []
         for idx, p in enumerate(passages):
@@ -48,13 +64,22 @@ class RAGOrchestrator:
             
         context_str = "\n\n".join(context_blocks)
         
+        fallback_msg = FALLBACK_MESSAGES.get(lang, FALLBACK_MESSAGES["en"])
+        lang_names = {
+            "en": "English", "hi": "Hindi", "gu": "Gujarati", "ta": "Tamil",
+            "mr": "Marathi", "ur": "Urdu", "bn": "Bengali", "kn": "Kannada",
+            "ml": "Malayalam", "pa": "Punjabi", "or": "Odia", "as": "Assamese",
+            "sa": "Sanskrit", "ne": "Nepali"
+        }
+        target_lang = lang_names.get(lang, "English")
+        
         prompt = f"""You are a helpful, factual assistant. Your task is to answer the user query based on the provided sources below.
 
 Rules:
-1. Answer the query using ONLY the facts explicitly mentioned or semantically supported by the sources. 
+1. Answer the query in {target_lang} using ONLY the facts explicitly mentioned or semantically supported by the sources. 
 2. You are allowed to use semantic reasoning and synonyms (for example, you can connect medical terms like "thoracic spine" to layman terms like "middle back" if the context supports it).
 3. Do NOT extrapolate, speculate, or use unrelated outside knowledge not supported by the sources.
-4. If the sources are completely unrelated, or do not contain enough information to formulate a valid answer to the query, you must reply exactly with: "{FALLBACK_MESSAGE}"
+4. If the sources are completely unrelated, or do not contain enough information to formulate a valid answer to the query, you must reply exactly with: "{fallback_msg}"
 5. Keep the answer concise and direct.
 
 Sources:
@@ -65,14 +90,15 @@ Query: {query}
 Answer:"""
         return prompt
 
-    def query_rag(self, query: str, k: int = 5) -> dict:
+    def query_rag(self, query: str, k: int = 5, lang: str = "en", use_llm: bool = False) -> dict:
         """
         Coordinates full RAG flow: Retrieval -> Relevance check -> Grounding prompt -> LLM generation.
         """
         start_time = time.time()
+        fallback_msg = FALLBACK_MESSAGES.get(lang, FALLBACK_MESSAGES["en"])
         
         # 1. Retrieve matching documents
-        results, search_latency_ms = self.retrieval_service.search(query, k=k)
+        results, search_latency_ms = self.retrieval_service.search(query, k=k, lang=lang)
         
         # Check relevance: if empty results or best score is below threshold
         best_score = results[0]["score"] if results else 0.0
@@ -82,7 +108,7 @@ Answer:"""
             total_latency = (time.time() - start_time) * 1000
             return {
                 "query": query,
-                "answer": FALLBACK_MESSAGE,
+                "answer": fallback_msg,
                 "sources": results,
                 "latency_ms": {
                     "retrieval": search_latency_ms,
@@ -93,8 +119,24 @@ Answer:"""
                 "best_score": best_score
             }
             
+        # Fast Extractive Mode: Bypasses LLM API call entirely
+        if not use_llm:
+            total_latency = (time.time() - start_time) * 1000
+            return {
+                "query": query,
+                "answer": results[0]["text"] if results else fallback_msg,
+                "sources": results,
+                "latency_ms": {
+                    "retrieval": search_latency_ms,
+                    "generation": 0.0,
+                    "total_rag": total_latency
+                },
+                "relevance_passed": True,
+                "best_score": best_score
+            }
+            
         # 2. Build context prompt
-        prompt = self._build_prompt(query, results)
+        prompt = self._build_prompt(query, results, lang=lang)
         
         # 3. Call LLM
         try:
@@ -135,15 +177,17 @@ Answer:"""
             "best_score": best_score
         }
 
-    def query_rag_voice(self, audio_path: str, k: int = 5) -> dict:
+    def query_rag_voice(self, audio_path: str, k: int = 5, lang: str = "en", use_llm: bool = False) -> dict:
         """
         Coordinates full voice RAG flow: Speech-to-Text -> Text RAG -> Return structured response.
         """
         # 1. Transcribe audio to text
         try:
-            transcript, stt_latency = self.stt_service.transcribe(audio_path)
+            # Pass language code hint to ElevenLabs (en, hi, gu)
+            transcript, stt_latency = self.stt_service.transcribe(audio_path, language_code=lang)
         except Exception as e:
             print(f"Error during Speech-to-Text conversion: {e}")
+            fallback_msg = FALLBACK_MESSAGES.get(lang, FALLBACK_MESSAGES["en"])
             return {
                 "query": "",
                 "transcript": f"[STT Error: {e}]",
@@ -160,7 +204,7 @@ Answer:"""
             }
             
         # 2. Run text-based RAG query
-        res = self.query_rag(transcript, k=k)
+        res = self.query_rag(transcript, k=k, lang=lang, use_llm=use_llm)
         
         # 3. Add voice transcription details and adjust latency
         res["transcript"] = transcript

@@ -32,7 +32,7 @@ class STTService:
         self.client = ElevenLabs(api_key=self.api_key)
         print("ElevenLabs STT Service initialized successfully.")
         
-    def transcribe(self, audio_path: str) -> tuple[str, float]:
+    def transcribe(self, audio_path: str, language_code: str = None) -> tuple[str, float]:
         """
         Transcribes the given audio file using ElevenLabs Scribe v2.
         Returns:
@@ -45,13 +45,14 @@ class STTService:
         start_time = time.time()
         
         try:
-            print(f"Uploading audio file '{audio_path}' to ElevenLabs...")
+            print(f"Uploading audio file '{audio_path}' to ElevenLabs (Language hint: {language_code})...")
             with open(audio_path, "rb") as audio_file:
                 result = self.client.speech_to_text.convert(
                     file=audio_file,
                     model_id="scribe_v2",
                     tag_audio_events=False,
-                    diarize=False
+                    diarize=False,
+                    language_code=language_code
                 )
             text = result.text.strip()
         except Exception as e:

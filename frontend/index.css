@@ -645,19 +645,21 @@ footer {
     box-shadow: 0 0 8px rgba(0, 230, 118, 0.4);
 }
 
-.slider:before {
+.slider::before {
     position: absolute;
     content: "";
     height: 14px;
     width: 14px;
     left: 3px;
     bottom: 3px;
-    background-color: white;
+    background-color: #ffffff;
     transition: .4s;
     border-radius: 50%;
+    display: block;
+    z-index: 2;
 }
 
-.switch-container input:checked + .slider:before {
+.switch-container input:checked + .slider::before {
     transform: translateX(14px);
 }
 

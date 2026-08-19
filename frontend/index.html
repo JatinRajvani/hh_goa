@@ -20,8 +20,36 @@
                 <i class="fa-solid fa-microphone-lines accent-icon"></i>
                 <h1>Voice RAG <span class="accent-text">Portal</span></h1>
             </div>
-            <div class="dataset-tag">
-                <i class="fa-solid fa-database"></i> MSMARCO-XI English Corpus
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <div class="dataset-tag">
+                    <i class="fa-solid fa-language"></i> Language: 
+                    <select id="lang-select" class="lang-select" style="background:none; border:none; color:var(--text-primary); font-weight:600; outline:none; cursor:pointer;">
+                        <option value="en" style="background:#171b26;" selected>English</option>
+                        <option value="hi" style="background:#171b26;">Hindi (हिंदी)</option>
+                        <option value="gu" style="background:#171b26;">Gujarati (ગુજરાતી)</option>
+                        <option value="ta" style="background:#171b26;">Tamil (தமிழ்)</option>
+                        <option value="mr" style="background:#171b26;">Marathi (मराठी)</option>
+                        <option value="ur" style="background:#171b26;">Urdu (اردو)</option>
+                        <option value="bn" style="background:#171b26;">Bengali (বাংলা)</option>
+                        <option value="kn" style="background:#171b26;">Kannada (ಕನ್ನಡ)</option>
+                        <option value="ml" style="background:#171b26;">Malayalam (മലയാളം)</option>
+                        <option value="pa" style="background:#171b26;">Punjabi (ਪੰਜਾਬી)</option>
+                        <option value="or" style="background:#171b26;">Odia (ଓଡ଼ିଆ)</option>
+                        <option value="as" style="background:#171b26;">Assamese (অસમীয়া)</option>
+                        <option value="sa" style="background:#171b26;">Sanskrit (संस्कृतम्)</option>
+                        <option value="ne" style="background:#171b26;">Nepali (नेपाली)</option>
+                    </select>
+                </div>
+                <div class="dataset-tag" style="display: flex; align-items: center; gap: 8px; user-select: none;">
+                    <i class="fa-solid fa-robot"></i> Conversational LLM
+                    <label class="switch-container" style="position: relative; display: inline-block; width: 34px; height: 20px;">
+                        <input type="checkbox" id="llm-toggle" style="opacity: 0; width: 0; height: 0;">
+                        <span class="slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.15); transition: .4s; border-radius: 20px;"></span>
+                    </label>
+                </div>
+                <div class="dataset-tag">
+                    <i class="fa-solid fa-database"></i> MSMARCO-XI
+                </div>
             </div>
         </header>
 

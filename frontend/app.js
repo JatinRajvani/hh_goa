@@ -133,13 +133,16 @@ document.addEventListener("DOMContentLoaded", () => {
         showLoading("Searching vector index...");
         transcriptContainer.classList.add("hidden");
         
+        const selectedLang = document.getElementById("lang-select").value;
+        const useLLM = document.getElementById("llm-toggle").checked;
+        
         try {
             const response = await fetch("/api/query", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ query: query, k: 5 })
+                body: JSON.stringify({ query: query, k: 5, language: selectedLang, use_llm: useLLM })
             });
             
             if (!response.ok) {
@@ -159,11 +162,16 @@ document.addEventListener("DOMContentLoaded", () => {
     async function submitVoiceQuery(audioBlob) {
         showLoading("Transcribing voice recording...");
         
+        const selectedLang = document.getElementById("lang-select").value;
+        const useLLM = document.getElementById("llm-toggle").checked;
+        
         try {
             const formData = new FormData();
             // Provide filename so FastAPI can parse extension correctly
             formData.append("file", audioBlob, "query_recording.webm");
             formData.append("k", 5);
+            formData.append("language", selectedLang);
+            formData.append("use_llm", useLLM);
             
             const response = await fetch("/api/query-voice", {
                 method: "POST",

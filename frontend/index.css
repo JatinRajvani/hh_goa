@@ -638,3 +638,26 @@ footer {
     font-size: 12px;
     color: var(--text-secondary);
 }
+
+/* Switch Toggle Styling */
+.switch-container input:checked + .slider {
+    background-color: var(--status-success, #00e676);
+    box-shadow: 0 0 8px rgba(0, 230, 118, 0.4);
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+.switch-container input:checked + .slider:before {
+    transform: translateX(14px);
+}
+

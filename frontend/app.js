@@ -20,6 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const latencyRetrieval = document.getElementById("latency-retrieval");
     const latencyGen = document.getElementById("latency-gen");
     const latencyTotal = document.getElementById("latency-total");
+    const engineSelect = document.getElementById("engine-select");
+    const retrievalLabel = document.getElementById("retrieval-label");
     
     // Recorder State variables
     let mediaRecorder = null;
@@ -27,6 +29,51 @@ document.addEventListener("DOMContentLoaded", () => {
     let isRecording = false;
     let timerInterval = null;
     let secondsElapsed = 0;
+
+    // Check host to lock down engine selection in cloud deployment
+    const hostname = window.location.hostname.toLowerCase();
+    const isLocal = 
+        hostname === "localhost" || 
+        hostname === "127.0.0.1" || 
+        hostname === "" || 
+        hostname.startsWith("192.168.") || 
+        hostname.startsWith("10.") || 
+        hostname.startsWith("172.") || 
+        hostname.endsWith(".local");
+        
+    if (!isLocal && engineSelect) {
+        engineSelect.value = "sparse";
+        engineSelect.disabled = true;
+        if (engineSelect.options.length > 0) {
+            engineSelect.options[0].textContent = "Keyword (BM25) [Cloud Locked]";
+        }
+        engineSelect.style.cursor = "not-allowed";
+        engineSelect.title = "Dense search is disabled on cloud deployment to prevent memory limit crashes.";
+    }
+
+    // Dynamic UI feedback for Conversational LLM switch status text
+    const llmToggle = document.getElementById("llm-toggle");
+    const llmStatusText = document.getElementById("llm-status-text");
+    const llmRobotIcon = document.getElementById("llm-robot-icon");
+
+    function updateLLMStatusUI() {
+        if (!llmToggle || !llmStatusText) return;
+        if (llmToggle.checked) {
+            llmStatusText.textContent = "Conversational LLM: ON";
+            llmStatusText.style.color = "#00e676";
+            if (llmRobotIcon) llmRobotIcon.style.color = "#00e676";
+        } else {
+            llmStatusText.textContent = "Conversational LLM: OFF";
+            llmStatusText.style.color = "";
+            if (llmRobotIcon) llmRobotIcon.style.color = "";
+        }
+    }
+
+    if (llmToggle) {
+        llmToggle.addEventListener("change", updateLLMStatusUI);
+        // Initial setup
+        updateLLMStatusUI();
+    }
     
     // ----------------------------------------------------
     // Timer helper functions
@@ -136,6 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         const selectedLang = document.getElementById("lang-select").value;
         const useLLM = document.getElementById("llm-toggle").checked;
+        const retrievalMode = engineSelect ? engineSelect.value : "default";
         
         try {
             const response = await fetch("/api/query", {
@@ -143,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ query: query, k: 5, language: selectedLang, use_llm: useLLM })
+                body: JSON.stringify({ query: query, k: 5, language: selectedLang, use_llm: useLLM, retrieval_mode: retrievalMode })
             });
             
             if (!response.ok) {
@@ -165,6 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         const selectedLang = document.getElementById("lang-select").value;
         const useLLM = document.getElementById("llm-toggle").checked;
+        const retrievalMode = engineSelect ? engineSelect.value : "default";
         
         try {
             const formData = new FormData();
@@ -173,6 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
             formData.append("k", 5);
             formData.append("language", selectedLang);
             formData.append("use_llm", useLLM);
+            formData.append("retrieval_mode", retrievalMode);
             
             const response = await fetch("/api/query-voice", {
                 method: "POST",
@@ -226,6 +276,15 @@ document.addEventListener("DOMContentLoaded", () => {
         // 2. Render answer
         answerDisplay.innerHTML = `<div class="answer-text">${data.answer}</div>`;
         
+        // Update dynamic search engine label
+        if (retrievalLabel && data.retrieval_mode) {
+            if (data.retrieval_mode === "sparse") {
+                retrievalLabel.innerHTML = `Lexical Retrieval <span class="badge" style="font-size:8px; padding:1px 4px; margin-left:4px; background:rgba(255,255,255,0.08); color:var(--text-secondary);">BM25</span>`;
+            } else {
+                retrievalLabel.innerHTML = `Vector Retrieval <span class="badge success" style="font-size:8px; padding:1px 4px; margin-left:4px; background:rgba(0,230,118,0.15); color:#00e676;">DENSE</span>`;
+            }
+        }
+
         // 3. Render relevance badge
         if (data.relevance_passed) {
             relevanceBadge.textContent = "Grounded";

@@ -39,13 +39,18 @@ class RetrievalService:
             print("Retrieval Service initialized in SPARSE mode (BM25). Bypassing SentenceTransformer load.")
             return
             
-        print(f"Loading embedding model '{self.model_name}'...")
-        self.model = SentenceTransformer(self.model_name)
-        print("Retrieval Service embedding model initialized and ready.")
+        self.load_dense_model_on_demand()
         
-    def _load_language_index(self, lang):
+    def load_dense_model_on_demand(self):
+        """Loads the SentenceTransformer embedding model on demand if not already loaded."""
+        if not self.model:
+            print(f"Loading embedding model '{self.model_name}' on demand...")
+            self.model = SentenceTransformer(self.model_name)
+            print("Embedding model loaded successfully.")
+
+    def _load_language_index(self, lang, mode="dense"):
         """Helper to lazily load and cache the index and mapping for a specific language."""
-        if self.mode == "sparse":
+        if mode == "sparse":
             if lang in self.bm25_models:
                 return
             map_file = os.path.join(self.index_dir, f"id_mapping_{lang}.json")
@@ -96,15 +101,18 @@ class RetrievalService:
         with open(map_file, "r", encoding="utf-8") as f:
             self.mappings[lang] = json.load(f)
             
-    def search(self, query, k=5, lang="en"):
+    def search(self, query, k=5, lang="en", mode=None):
         """
         Retrieves top K matching documents either via dense semantic search (FAISS) 
-        or sparse lexical search (BM25) depending on retrieval mode.
+        or sparse lexical search (BM25) depending on the active retrieval mode.
         """
         start_time = time.time()
-        self._load_language_index(lang)
         
-        if self.mode == "sparse":
+        # Determine the active mode for this query
+        active_mode = (mode or self.mode).lower()
+        self._load_language_index(lang, mode=active_mode)
+        
+        if active_mode == "sparse":
             bm25_data = self.bm25_models[lang]
             bm25_model = bm25_data["model"]
             ordered_ids = bm25_data["ordered_ids"]
@@ -135,8 +143,11 @@ class RetrievalService:
             return results, latency_ms
             
         # Dense mode search path
+        if active_mode == "dense" and not self.model:
+            self.load_dense_model_on_demand()
+            
         if not self.model:
-            raise RuntimeError("RetrievalService embedding model is not loaded. Call load() first.")
+            raise RuntimeError("RetrievalService embedding model is not loaded.")
             
         index = self.indices[lang]
         id_mapping = self.mappings[lang]

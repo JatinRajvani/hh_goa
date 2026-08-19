@@ -40,18 +40,19 @@ class QueryRequest(BaseModel):
     k: int = 5
     language: str = "auto"
     use_llm: bool = False
+    retrieval_mode: str = "default"
 
 @app.post("/api/query")
 def query_text(request: QueryRequest):
     try:
         orch = get_orchestrator()
-        result = orch.query_rag(request.query, k=request.k, lang=request.language, use_llm=request.use_llm)
+        result = orch.query_rag(request.query, k=request.k, lang=request.language, use_llm=request.use_llm, retrieval_mode=request.retrieval_mode)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/query-voice")
-def query_voice(file: UploadFile = File(...), k: int = Form(5), language: str = Form("auto"), use_llm: bool = Form(False)):
+def query_voice(file: UploadFile = File(...), k: int = Form(5), language: str = Form("auto"), use_llm: bool = Form(False), retrieval_mode: str = Form("default")):
     # Save the uploaded audio file to a temporary file
     temp_dir = tempfile.gettempdir()
     # Try to keep extension or fallback to .wav
@@ -64,7 +65,7 @@ def query_voice(file: UploadFile = File(...), k: int = Form(5), language: str = 
             shutil.copyfileobj(file.file, buffer)
             
         orch = get_orchestrator()
-        result = orch.query_rag_voice(temp_path, k=k, lang=language, use_llm=use_llm)
+        result = orch.query_rag_voice(temp_path, k=k, lang=language, use_llm=use_llm, retrieval_mode=retrieval_mode)
         return result
     except Exception as e:
         print(f"Error querying voice RAG: {e}")

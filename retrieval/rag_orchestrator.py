@@ -137,9 +137,9 @@ Query: {query}
 Answer:"""
         return prompt
 
-    def query_rag(self, query: str, k: int = 5, lang: str = "en", use_llm: bool = False) -> dict:
+    def query_rag(self, query: str, k: int = 5, lang: str = "en", use_llm: bool = False, retrieval_mode: str = "default") -> dict:
         """
-        Coordinates RAG flow: Auto-Detect Language -> Retrieval -> Relevance -> Extractive / LLM.
+        Coordinates RAG flow: Auto-Detect -> Dynamic Engine Retrieval -> Relevance -> Extractive / LLM.
         """
         start_time = time.time()
         
@@ -152,7 +152,11 @@ Answer:"""
         fallback_msg = FALLBACK_MESSAGES.get(detected_lang, FALLBACK_MESSAGES["en"])
         
         # 1. Retrieve matching documents
-        results, search_latency_ms = self.retrieval_service.search(query, k=k, lang=detected_lang)
+        active_mode = None if retrieval_mode == "default" else retrieval_mode
+        results, search_latency_ms = self.retrieval_service.search(query, k=k, lang=detected_lang, mode=active_mode)
+        
+        # Get active retrieval mode used
+        retrieval_mode_used = self.retrieval_service.mode if retrieval_mode == "default" else retrieval_mode
         
         # Check relevance: if empty results or best score is below threshold
         best_score = results[0]["score"] if results else 0.0
@@ -162,6 +166,7 @@ Answer:"""
             return {
                 "query": query,
                 "detected_language": detected_lang,
+                "retrieval_mode": retrieval_mode_used,
                 "answer": fallback_msg,
                 "sources": results,
                 "latency_ms": {
@@ -179,6 +184,7 @@ Answer:"""
             return {
                 "query": query,
                 "detected_language": detected_lang,
+                "retrieval_mode": retrieval_mode_used,
                 "answer": results[0]["text"] if results else fallback_msg,
                 "sources": results,
                 "latency_ms": {
@@ -202,6 +208,7 @@ Answer:"""
             return {
                 "query": query,
                 "detected_language": detected_lang,
+                "retrieval_mode": retrieval_mode_used,
                 "answer": f"Generation Error: {e}",
                 "sources": results,
                 "latency_ms": {
@@ -219,6 +226,7 @@ Answer:"""
         return {
             "query": query,
             "detected_language": detected_lang,
+            "retrieval_mode": retrieval_mode_used,
             "answer": cleaned_answer,
             "sources": results,
             "latency_ms": {
@@ -230,9 +238,9 @@ Answer:"""
             "best_score": best_score
         }
 
-    def query_rag_voice(self, audio_path: str, k: int = 5, lang: str = "en", use_llm: bool = False) -> dict:
+    def query_rag_voice(self, audio_path: str, k: int = 5, lang: str = "en", use_llm: bool = False, retrieval_mode: str = "default") -> dict:
         """
-        Coordinates voice RAG flow: STT (Auto-detect) -> Auto-detect Text RAG.
+        Coordinates voice RAG flow: STT (Auto-detect) -> Auto-detect Dynamic RAG.
         """
         # 1. Transcribe audio to text (if lang is auto, pass None to Scribe to auto-detect audio speech)
         try:
@@ -243,6 +251,8 @@ Answer:"""
             fallback_msg = FALLBACK_MESSAGES.get(lang, FALLBACK_MESSAGES["en"])
             return {
                 "query": "",
+                "detected_language": "en",
+                "retrieval_mode": self.retrieval_service.mode if retrieval_mode == "default" else retrieval_mode,
                 "transcript": f"[STT Error: {e}]",
                 "answer": f"Speech-to-Text Error: {e}",
                 "sources": [],
@@ -257,7 +267,7 @@ Answer:"""
             }
             
         # 2. Run text-based RAG query
-        res = self.query_rag(transcript, k=k, lang=lang, use_llm=use_llm)
+        res = self.query_rag(transcript, k=k, lang=lang, use_llm=use_llm, retrieval_mode=retrieval_mode)
         
         # 3. Add voice transcription details and adjust latency
         res["transcript"] = transcript

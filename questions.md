@@ -54,3 +54,7 @@ _________ justice is designed to repair the harm to victim, the community and th
 म्यानहट्टन परियोजनाको सफलताको तत्काल प्रभाव के थियो?
 विभिन्न प्रकारका सामाजिक सुरक्षा अशक्तता
 न्यायपूर्णता पीडित, समुदाय र अपराधीले गरेको अपराधका कारण हुने क्षतिको मर्मत गर्न डिजाइन गरिएको हो। प्रश्न १९ विकल्पहरू:
+
+
+=> Updated question for semantic and bm25?
+Why was the secret nuclear facility placed close to a large water body?

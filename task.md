@@ -1,9 +1,10 @@
-# Dual-Mode Retrieval Integration Tasks
+# Dynamic Retrieval Engine Selector Tasks
 
-- [x] Add `RETRIEVAL_MODE=dense` to `.env` and `.env.example`
-- [x] Update `retrieval/search.py` load logic to bypass loading model when mode is `sparse`
-- [x] Implement lazy BM25 index initialization from mappings in `search.py` when in `sparse` mode
-- [x] Update search query path in `search.py` to execute BM25 lexical search when in `sparse` mode
-- [x] Verify `dense` (semantic) RAG search functions correctly
-- [x] Verify `sparse` (BM25) RAG search functions correctly (without loading sentence transformer)
+- [x] Modify `search` method signature and query routing in `retrieval/search.py` to accept dynamic `mode` parameter
+- [x] Update `query_rag` and `query_rag_voice` in `retrieval/rag_orchestrator.py` to accept and forward `retrieval_mode`
+- [x] Add `retrieval_mode` parsing to API endpoint routes in `backend/app.py`
+- [x] Add the Search Engine dropdown selector in the header layout of `frontend/index.html`
+- [x] Update `frontend/app.js` to check hostname, lock selector to BM25 in cloud production, and send selected mode in query requests
+- [x] Update `frontend/app.js` updateUI function to dynamically rename Vector/Lexical Retrieval latency headers
+- [x] Verify dynamic local engine switching (Side-by-Side testing)
 - [x] Update walkthrough documentation

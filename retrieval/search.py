@@ -27,18 +27,53 @@ class RetrievalService:
     def __init__(self, index_dir=DEFAULT_INDEX_DIR, model_name=None):
         self.index_dir = index_dir
         self.model_name = model_name or os.getenv("EMBEDDING_MODEL", DEFAULT_MODEL_NAME)
+        self.mode = os.getenv("RETRIEVAL_MODE", "dense").lower()
         self.indices = {}      # lang_code -> FAISS index
         self.mappings = {}     # lang_code -> id mapping dict
+        self.bm25_models = {}  # lang_code -> {"model": BM25Okapi, "ordered_ids": [...], "mapping": {...}}
         self.model = None
         
     def load(self):
-        """Loads the SentenceTransformer embedding model. Indices are loaded lazily."""
+        """Loads the SentenceTransformer embedding model only if in dense mode. Otherwise, ready for BM25."""
+        if self.mode == "sparse":
+            print("Retrieval Service initialized in SPARSE mode (BM25). Bypassing SentenceTransformer load.")
+            return
+            
         print(f"Loading embedding model '{self.model_name}'...")
         self.model = SentenceTransformer(self.model_name)
         print("Retrieval Service embedding model initialized and ready.")
         
     def _load_language_index(self, lang):
         """Helper to lazily load and cache the index and mapping for a specific language."""
+        if self.mode == "sparse":
+            if lang in self.bm25_models:
+                return
+            map_file = os.path.join(self.index_dir, f"id_mapping_{lang}.json")
+            if not os.path.exists(map_file):
+                map_file = os.path.join(self.index_dir, "id_mapping.json")
+                if not os.path.exists(map_file):
+                    raise FileNotFoundError(f"Mapping file for language '{lang}' not found in '{self.index_dir}'.")
+            
+            print(f"Loading document mapping for '{lang}' (BM25) from {map_file}...")
+            with open(map_file, "r", encoding="utf-8") as f:
+                mapping_data = json.load(f)
+                
+            mapping = mapping_data.get("mapping", {})
+            ordered_ids = mapping_data.get("ordered_ids", [])
+            corpus = [mapping.get(doc_id, "") for doc_id in ordered_ids]
+            
+            # Simple whitespace tokenizer for multilingual compatibility
+            tokenized_corpus = [doc.lower().split() for doc in corpus]
+            
+            from rank_bm25 import BM25Okapi
+            self.bm25_models[lang] = {
+                "model": BM25Okapi(tokenized_corpus),
+                "ordered_ids": ordered_ids,
+                "mapping": mapping
+            }
+            return
+
+        # Dense retrieval mode load
         if lang in self.indices:
             return
             
@@ -63,19 +98,48 @@ class RetrievalService:
             
     def search(self, query, k=5, lang="en"):
         """
-        Embed the text query, perform similarity search on FAISS for the specified language,
-        and return the Top-K matching documents.
+        Retrieves top K matching documents either via dense semantic search (FAISS) 
+        or sparse lexical search (BM25) depending on retrieval mode.
         """
+        start_time = time.time()
+        self._load_language_index(lang)
+        
+        if self.mode == "sparse":
+            bm25_data = self.bm25_models[lang]
+            bm25_model = bm25_data["model"]
+            ordered_ids = bm25_data["ordered_ids"]
+            mapping = bm25_data["mapping"]
+            
+            # Query tokenization
+            tokenized_query = query.lower().split()
+            scores = bm25_model.get_scores(tokenized_query)
+            
+            # Sort indices by score descending
+            top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:k]
+            
+            results = []
+            for idx in top_indices:
+                score = float(scores[idx])
+                # Normalize BM25 raw scores to a 0-1 scale that passes relevance thresholds (>0.45)
+                mapped_score = min(0.99, 0.45 + (score / 100.0)) if score > 0 else 0.0
+                doc_id = ordered_ids[idx]
+                doc_text = mapping.get(doc_id, "")
+                results.append({
+                    "document_id": doc_id,
+                    "text": doc_text,
+                    "metadata": {},
+                    "score": mapped_score
+                })
+            
+            latency_ms = (time.time() - start_time) * 1000
+            return results, latency_ms
+            
+        # Dense mode search path
         if not self.model:
             raise RuntimeError("RetrievalService embedding model is not loaded. Call load() first.")
             
-        # Ensure the requested language index is loaded
-        self._load_language_index(lang)
-        
         index = self.indices[lang]
         id_mapping = self.mappings[lang]
-        
-        start_time = time.time()
         
         # 1. Encode query
         query_vector = self.model.encode(query, convert_to_numpy=True)

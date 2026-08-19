@@ -1,10 +1,9 @@
-# Auto-Detect Language Integration Tasks
+# Dual-Mode Retrieval Integration Tasks
 
-- [x] Implement `detect_language` helper in `retrieval/rag_orchestrator.py` using `langdetect`
-- [x] Update `query_rag` and `query_rag_voice` in `retrieval/rag_orchestrator.py` to route to detected language when `lang == "auto"`
-- [x] Update default language to `"auto"` in `backend/app.py` endpoints
-- [x] Add `"auto"` option to CLI parser in `retrieval/search.py`
-- [x] Add `Auto-Detect` option to dropdown menu in `frontend/index.html` as default selection
-- [x] Update `frontend/app.js` to show detected language feedback on UI
-- [x] Verify Auto-detect routing for multiple languages (English, Hindi, Gujarati, Tamil, Marathi)
+- [x] Add `RETRIEVAL_MODE=dense` to `.env` and `.env.example`
+- [x] Update `retrieval/search.py` load logic to bypass loading model when mode is `sparse`
+- [x] Implement lazy BM25 index initialization from mappings in `search.py` when in `sparse` mode
+- [x] Update search query path in `search.py` to execute BM25 lexical search when in `sparse` mode
+- [x] Verify `dense` (semantic) RAG search functions correctly
+- [x] Verify `sparse` (BM25) RAG search functions correctly (without loading sentence transformer)
 - [x] Update walkthrough documentation

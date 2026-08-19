@@ -55,6 +55,53 @@ class RAGOrchestrator:
             self.threshold = 0.60
             
         print(f"RAG Orchestrator initialized. Relevance threshold: {self.threshold}")
+
+    def detect_language(self, query: str) -> str:
+        """
+        Detects the query language based on Unicode script block checks and langdetect library.
+        Returns the ISO 639-1 language code matched to our supported indices.
+        """
+        if not query:
+            return "en"
+            
+        # 1. Unicode Range Fast check (highly reliable for unique Indian scripts)
+        for char in query:
+            val = ord(char)
+            if 0x0a80 <= val <= 0x0aff:
+                return "gu"  # Gujarati
+            if 0x0b80 <= val <= 0x0bff:
+                return "ta"  # Tamil
+            if 0x0c80 <= val <= 0x0cff:
+                return "kn"  # Kannada
+            if 0x0d00 <= val <= 0x0d7f:
+                return "ml"  # Malayalam
+            if 0x0a00 <= val <= 0x0a7f:
+                return "pa"  # Punjabi
+            if 0x0b00 <= val <= 0x0b7f:
+                return "or"  # Odia
+            if 0x0600 <= val <= 0x06ff:
+                return "ur"  # Urdu
+            if 0x0980 <= val <= 0x09ff:
+                return "bn"  # Bengali/Assamese script
+                
+        # 2. Use langdetect for Devanagari script sharing (hi, mr, ne, sa) and Latin/English (en)
+        try:
+            import langdetect
+            detected = langdetect.detect(query)
+            
+            mapping = {
+                "hi": "hi", "mr": "mr", "ne": "ne", "sa": "sa", 
+                "en": "en", "bn": "bn", "gu": "gu", "ta": "ta",
+                "ur": "ur", "kn": "kn", "ml": "ml", "pa": "pa",
+                "or": "or", "as": "as"
+            }
+            code = mapping.get(detected)
+            if code:
+                return code
+        except Exception as e:
+            print(f"Langdetect error: {e}. Falling back to default.")
+            
+        return "en"
         
     def _build_prompt(self, query: str, passages: list[dict], lang: str = "en") -> str:
         """Constructs the grounding prompt for the LLM."""
@@ -92,22 +139,29 @@ Answer:"""
 
     def query_rag(self, query: str, k: int = 5, lang: str = "en", use_llm: bool = False) -> dict:
         """
-        Coordinates full RAG flow: Retrieval -> Relevance check -> Grounding prompt -> LLM generation.
+        Coordinates RAG flow: Auto-Detect Language -> Retrieval -> Relevance -> Extractive / LLM.
         """
         start_time = time.time()
-        fallback_msg = FALLBACK_MESSAGES.get(lang, FALLBACK_MESSAGES["en"])
+        
+        # Auto-detect language if specified
+        detected_lang = lang
+        if lang == "auto":
+            detected_lang = self.detect_language(query)
+            print(f"[Auto-detect] Query: '{query}' -> Detected Language: '{detected_lang}'")
+            
+        fallback_msg = FALLBACK_MESSAGES.get(detected_lang, FALLBACK_MESSAGES["en"])
         
         # 1. Retrieve matching documents
-        results, search_latency_ms = self.retrieval_service.search(query, k=k, lang=lang)
+        results, search_latency_ms = self.retrieval_service.search(query, k=k, lang=detected_lang)
         
         # Check relevance: if empty results or best score is below threshold
         best_score = results[0]["score"] if results else 0.0
         
         if not results or best_score < self.threshold:
-            # Short-circuit and return fallback immediately (no LLM call)
             total_latency = (time.time() - start_time) * 1000
             return {
                 "query": query,
+                "detected_language": detected_lang,
                 "answer": fallback_msg,
                 "sources": results,
                 "latency_ms": {
@@ -124,6 +178,7 @@ Answer:"""
             total_latency = (time.time() - start_time) * 1000
             return {
                 "query": query,
+                "detected_language": detected_lang,
                 "answer": results[0]["text"] if results else fallback_msg,
                 "sources": results,
                 "latency_ms": {
@@ -136,17 +191,17 @@ Answer:"""
             }
             
         # 2. Build context prompt
-        prompt = self._build_prompt(query, results, lang=lang)
+        prompt = self._build_prompt(query, results, lang=detected_lang)
         
         # 3. Call LLM
         try:
             answer, llm_latency_ms = self.llm_service.generate(prompt)
         except Exception as e:
-            # Fallback or error logging
             print(f"Error during LLM generation: {e}")
             total_latency = (time.time() - start_time) * 1000
             return {
                 "query": query,
+                "detected_language": detected_lang,
                 "answer": f"Generation Error: {e}",
                 "sources": results,
                 "latency_ms": {
@@ -159,13 +214,11 @@ Answer:"""
             }
             
         total_latency = (time.time() - start_time) * 1000
-        
-        # Double check if the LLM output says it couldn't find the answer (post-generation grounding fallback check)
-        # Even if the context was passed, the LLM might decide the passages don't actually support the specific question.
         cleaned_answer = answer.strip()
         
         return {
             "query": query,
+            "detected_language": detected_lang,
             "answer": cleaned_answer,
             "sources": results,
             "latency_ms": {
@@ -179,12 +232,12 @@ Answer:"""
 
     def query_rag_voice(self, audio_path: str, k: int = 5, lang: str = "en", use_llm: bool = False) -> dict:
         """
-        Coordinates full voice RAG flow: Speech-to-Text -> Text RAG -> Return structured response.
+        Coordinates voice RAG flow: STT (Auto-detect) -> Auto-detect Text RAG.
         """
-        # 1. Transcribe audio to text
+        # 1. Transcribe audio to text (if lang is auto, pass None to Scribe to auto-detect audio speech)
         try:
-            # Pass language code hint to ElevenLabs (en, hi, gu)
-            transcript, stt_latency = self.stt_service.transcribe(audio_path, language_code=lang)
+            stt_lang = None if lang == "auto" else lang
+            transcript, stt_latency = self.stt_service.transcribe(audio_path, language_code=stt_lang)
         except Exception as e:
             print(f"Error during Speech-to-Text conversion: {e}")
             fallback_msg = FALLBACK_MESSAGES.get(lang, FALLBACK_MESSAGES["en"])

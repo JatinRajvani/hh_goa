@@ -38,7 +38,7 @@ def get_orchestrator():
 class QueryRequest(BaseModel):
     query: str
     k: int = 5
-    language: str = "en"
+    language: str = "auto"
     use_llm: bool = False
 
 @app.post("/api/query")
@@ -51,7 +51,7 @@ def query_text(request: QueryRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/query-voice")
-def query_voice(file: UploadFile = File(...), k: int = Form(5), language: str = Form("en"), use_llm: bool = Form(False)):
+def query_voice(file: UploadFile = File(...), k: int = Form(5), language: str = Form("auto"), use_llm: bool = Form(False)):
     # Save the uploaded audio file to a temporary file
     temp_dir = tempfile.gettempdir()
     # Try to keep extension or fallback to .wav

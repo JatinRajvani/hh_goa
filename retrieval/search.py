@@ -129,7 +129,7 @@ def main():
     parser.add_argument("--query", type=str, help="Text query to search for.")
     parser.add_argument("--voice", type=str, help="Path to audio file for voice RAG search.")
     parser.add_argument("--k", type=int, default=5, help="Number of Top-K results to retrieve.")
-    parser.add_argument("--lang", type=str, default="en", choices=["en", "hi", "gu", "ta", "mr", "ur", "bn", "kn", "ml", "pa", "or", "as", "sa", "ne"], help="Language index to query (en, hi, gu, ta, mr, ur, bn, kn, ml, pa, or, as, sa, ne).")
+    parser.add_argument("--lang", type=str, default="auto", choices=["auto", "en", "hi", "gu", "ta", "mr", "ur", "bn", "kn", "ml", "pa", "or", "as", "sa", "ne"], help="Language index to query (auto, en, hi, gu, ta, mr, ur, bn, kn, ml, pa, or, as, sa, ne).")
     parser.add_argument("--interactive", action="store_true", help="Start an interactive search shell.")
     parser.add_argument("--rag", action="store_true", help="Enable LLM RAG generation and grounding.")
     
@@ -164,8 +164,24 @@ def main():
             transcript, stt_latency = stt.transcribe(args.voice)
             print(f"Transcript: '{transcript}' (STT Latency: {stt_latency:.2f} ms)")
             
-            print(f"\nSearching for: '{transcript}' (K={args.k}, Lang={args.lang})")
-            results, latency = service.search(transcript, k=args.k, lang=args.lang)
+            # Auto-detect language if specified
+            search_lang = args.lang
+            if search_lang == "auto":
+                search_lang = "en"
+                for char in transcript:
+                    val = ord(char)
+                    if 0x0a80 <= val <= 0x0aff: search_lang = "gu"; break
+                    if 0x0b80 <= val <= 0x0bff: search_lang = "ta"; break
+                    if 0x0900 <= val <= 0x097f: search_lang = "hi"; break
+                    if 0x0c80 <= val <= 0x0cff: search_lang = "kn"; break
+                    if 0x0d00 <= val <= 0x0d7f: search_lang = "ml"; break
+                    if 0x0a00 <= val <= 0x0a7f: search_lang = "pa"; break
+                    if 0x0b00 <= val <= 0x0b7f: search_lang = "or"; break
+                    if 0x0600 <= val <= 0x06ff: search_lang = "ur"; break
+                    if 0x0980 <= val <= 0x09ff: search_lang = "bn"; break
+
+            print(f"\nSearching for: '{transcript}' (K={args.k}, Lang={search_lang})")
+            results, latency = service.search(transcript, k=args.k, lang=search_lang)
             print(f"Search completed in {latency:.2f} ms")
             
             print("\nResults:")
@@ -182,8 +198,24 @@ def main():
             print(f"\nRelevance Passed: {res['relevance_passed']} (Best Score: {res['best_score']:.4f})")
             print(f"Latency: Retrieval={res['latency_ms']['retrieval']:.2f} ms | Gen={res['latency_ms']['generation']:.2f} ms | Total={res['latency_ms']['total_rag']:.2f} ms")
         else:
-            print(f"\nSearching for: '{args.query}' (K={args.k}, Lang={args.lang})")
-            results, latency = service.search(args.query, k=args.k, lang=args.lang)
+            # Auto-detect language if specified
+            search_lang = args.lang
+            if search_lang == "auto":
+                search_lang = "en"
+                for char in args.query:
+                    val = ord(char)
+                    if 0x0a80 <= val <= 0x0aff: search_lang = "gu"; break
+                    if 0x0b80 <= val <= 0x0bff: search_lang = "ta"; break
+                    if 0x0900 <= val <= 0x097f: search_lang = "hi"; break
+                    if 0x0c80 <= val <= 0x0cff: search_lang = "kn"; break
+                    if 0x0d00 <= val <= 0x0d7f: search_lang = "ml"; break
+                    if 0x0a00 <= val <= 0x0a7f: search_lang = "pa"; break
+                    if 0x0b00 <= val <= 0x0b7f: search_lang = "or"; break
+                    if 0x0600 <= val <= 0x06ff: search_lang = "ur"; break
+                    if 0x0980 <= val <= 0x09ff: search_lang = "bn"; break
+
+            print(f"\nSearching for: '{args.query}' (K={args.k}, Lang={search_lang})")
+            results, latency = service.search(args.query, k=args.k, lang=search_lang)
             print(f"Search completed in {latency:.2f} ms")
             
             print("\nResults:")

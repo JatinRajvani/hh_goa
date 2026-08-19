@@ -24,7 +24,8 @@
                 <div class="dataset-tag">
                     <i class="fa-solid fa-language"></i> Language: 
                     <select id="lang-select" class="lang-select" style="background:none; border:none; color:var(--text-primary); font-weight:600; outline:none; cursor:pointer;">
-                        <option value="en" style="background:#171b26;" selected>English</option>
+                        <option value="auto" style="background:#171b26;" selected>Auto-Detect Language</option>
+                        <option value="en" style="background:#171b26;">English</option>
                         <option value="hi" style="background:#171b26;">Hindi (हिंदी)</option>
                         <option value="gu" style="background:#171b26;">Gujarati (ગુજરાતી)</option>
                         <option value="ta" style="background:#171b26;">Tamil (தமிழ்)</option>
@@ -91,9 +92,12 @@
             <section class="output-panel">
                 <!-- Grounded Answer Card -->
                 <div class="answer-card glass-card">
-                    <div class="panel-header">
+                    <div class="panel-header" style="display: flex; gap: 8px; align-items: center; justify-content: space-between; width: 100%;">
                         <h2><i class="fa-solid fa-sparkles"></i> Grounded Answer</h2>
-                        <span id="relevance-badge" class="badge">Awaiting Query</span>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span id="detected-lang-badge" class="badge hidden" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-secondary);">Detected: -</span>
+                            <span id="relevance-badge" class="badge">Awaiting Query</span>
+                        </div>
                     </div>
                     
                     <div class="transcript-display hidden" id="transcript-container">

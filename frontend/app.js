@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const queryForm = document.getElementById("query-form");
     const queryInput = document.getElementById("query-input");
     const relevanceBadge = document.getElementById("relevance-badge");
+    const detectedLangBadge = document.getElementById("detected-lang-badge");
     const transcriptContainer = document.getElementById("transcript-container");
     const transcriptText = document.getElementById("transcript-text");
     const answerDisplay = document.getElementById("answer-text-display");
@@ -204,6 +205,22 @@ document.addEventListener("DOMContentLoaded", () => {
             transcriptContainer.classList.remove("hidden");
         } else {
             transcriptContainer.classList.add("hidden");
+        }
+
+        // Render detected language badge if dynamic language mapping is active
+        const selectedLang = document.getElementById("lang-select").value;
+        if (selectedLang === "auto" && data.detected_language) {
+            const langNames = {
+                "en": "English", "hi": "Hindi", "gu": "Gujarati", "ta": "Tamil",
+                "mr": "Marathi", "ur": "Urdu", "bn": "Bengali", "kn": "Kannada",
+                "ml": "Malayalam", "pa": "Punjabi", "or": "Odia", "as": "Assamese",
+                "sa": "Sanskrit", "ne": "Nepali"
+            };
+            const name = langNames[data.detected_language] || data.detected_language.toUpperCase();
+            detectedLangBadge.textContent = `Detected: ${name}`;
+            detectedLangBadge.classList.remove("hidden");
+        } else {
+            detectedLangBadge.classList.add("hidden");
         }
         
         // 2. Render answer

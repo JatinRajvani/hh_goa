@@ -1,10 +1,10 @@
-# Mode Toggle Integration Tasks
+# Auto-Detect Language Integration Tasks
 
-- [x] Modify `retrieval/rag_orchestrator.py` to bypass LLM generation when `use_llm` is False
-- [x] Modify `backend/app.py` request structures and endpoint arguments
-- [x] Modify `frontend/index.html` to place the "Conversational LLM" toggle switch
-- [x] Modify `frontend/index.css` to style the toggle switch slider
-- [x] Modify `frontend/app.js` to parse and pass `use_llm` in payloads
-- [x] Verify Extractive RAG (0.0ms generation, sub-200ms total)
-- [x] Verify Conversational LLM RAG (Groq generation)
+- [x] Implement `detect_language` helper in `retrieval/rag_orchestrator.py` using `langdetect`
+- [x] Update `query_rag` and `query_rag_voice` in `retrieval/rag_orchestrator.py` to route to detected language when `lang == "auto"`
+- [x] Update default language to `"auto"` in `backend/app.py` endpoints
+- [x] Add `"auto"` option to CLI parser in `retrieval/search.py`
+- [x] Add `Auto-Detect` option to dropdown menu in `frontend/index.html` as default selection
+- [x] Update `frontend/app.js` to show detected language feedback on UI
+- [x] Verify Auto-detect routing for multiple languages (English, Hindi, Gujarati, Tamil, Marathi)
 - [x] Update walkthrough documentation

@@ -12,6 +12,24 @@ Speak a question in English or any of the 13 native Indic languages. The system 
 
 ---
 
+## 🛠️ End-to-End Technology Stack
+
+> [!NOTE]
+> Our architecture combines lightweight, local processing with high-performance hosted APIs to serve multilingual requests under 200ms within a 512MB RAM cloud hosting limit.
+
+| Layer | Component / Technology | Detail / Model | Role in Pipeline |
+| :--- | :--- | :--- | :--- |
+| **Frontend UI** | HTML5 / Vanilla CSS / Vanilla JS | Glassmorphic Dashboard | Handles audio capture, telemetry chart rendering, and cloud engine locks. |
+| **Speech-to-Text**| ElevenLabs Scribe API | `scribe_v1` Multilingual | Transcribes voice audio into native Indic scripts (handling accents and code-switching). |
+| **API Orchestrator**| FastAPI + Uvicorn | Python Asynchronous Server | Serves structured endpoints, parses multipart form data, and implements error fallbacks. |
+| **Script Detection**| Unicode Ranges + `langdetect` | Dual-Layer Custom Resolver | Identifies query language in 0.01ms to target language-specific database shards. |
+| **Lexical Search** | `rank-bm25` | Okapi BM25 Sparse Index | Scans text tokens (default cloud search running under 45MB RAM footprint). |
+| **Semantic Search** | FAISS (`faiss-cpu`) | Flat Inner Product Index | Compares cosine distances on localhost dev environments for conceptual search. |
+| **Vector Embedding**| SentenceTransformers | `paraphrase-multilingual-MiniLM-L12-v2` | Encodes user queries into a 384-dimensional multilingual vector space. |
+| **LLM Grounding**  | Groq API | `openai/gpt-oss-20b` | Generates conversational grounded answers in native scripts when LLM Mode is ON. |
+
+---
+
 ## 🔗 Submission Credentials
 * **Live Working Web Portal**: [hh-goa.onrender.com](https://hh-goa.onrender.com) *(first load after idle takes ~30s to spin up)*
 * **GitHub Repository**: *[GitHub Repo Link Placeholder]*

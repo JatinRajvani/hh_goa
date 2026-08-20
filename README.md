@@ -2,7 +2,7 @@
 
 🎙️ **A voice-activated, multilingual Retrieval-Augmented Generation (RAG) system operating over the `ai4bharat/MSMARCO-XI` dataset.** 
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-voice--rag--portal-3dff8a?style=for-the-badge&logo=render)](https://hh-goa.onrender.com)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-voice--rag--portal-3dff8a?style=for-the-badge&logo=render)](https://hh-goa-yxyy.onrender.com/)
 [![RAG P50](https://img.shields.io/badge/RAG_P50-21.5_ms-0e241b?style=for-the-badge)](docs/14-measured-latency.md)
 [![RAG P100](https://img.shields.io/badge/RAG_P100-46.8_ms_%3C_200-3dff8a?style=for-the-badge)](docs/14-measured-latency.md)
 [![Languages](https://img.shields.io/badge/Languages-14_Supported-blue?style=for-the-badge)](docs/01-product-overview.md)

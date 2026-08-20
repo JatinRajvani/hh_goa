@@ -8,6 +8,11 @@
 [![Languages](https://img.shields.io/badge/Languages-14_Supported-blue?style=for-the-badge)](docs/01-product-overview.md)
 [![Dataset](https://img.shields.io/badge/Dataset-MSMARCO--XI-ffb020?style=for-the-badge)](https://huggingface.co/datasets/ai4bharat/MSMARCO-XI)
 
+> [!IMPORTANT]
+> 🚀 **Live Portal**: [hh-goa.onrender.com](https://hh-goa.onrender.com)
+> 📹 **Detailed Architecture & Code Walkthrough**: [youtu.be/4FzrUFFhS18](https://youtu.be/4FzrUFFhS18)
+> 📹 **Product Demonstration Video**: [youtu.be/IcSiq11f61E](https://youtu.be/IcSiq11f61E)
+
 Speak a question in English or any of the 13 native Indic languages. The system transcribes, auto-detects the query script, searches our index, applies safety/relevance guardrails, and serves grounded answers in under 50ms with step-by-step latency analytics.
 
 ---

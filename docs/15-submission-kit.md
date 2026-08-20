@@ -7,9 +7,8 @@ This document compiles the submission details, hosting links, and instructions f
 ## 🔗 Submission Details
 *   **Live Working Portal**: [hh-goa.onrender.com](https://hh-goa.onrender.com)
     *   *First load note*: Render's Free tier spins down web containers during idle periods. The first load after dormancy may take ~30 seconds.
-*   **GitHub Repository**: *[GitHub Repo Link Placeholder]*
-*   **Video 1 (Team Process - 90s)**: *[Video URL]*
-*   **Video 2 (Product Walkthrough)**: *[Video URL]*
+*   **Video 1 (Detailed Technical Deep-Dive)**: [youtu.be/4FzrUFFhS18](https://youtu.be/4FzrUFFhS18)
+*   **Video 2 (Product Demo Video)**: [youtu.be/IcSiq11f61E](https://youtu.be/IcSiq11f61E)
 *   **Tag / Hashtag**: `#RAGInGoa` (Submission Deadline: August 22, 2026)
 
 ---

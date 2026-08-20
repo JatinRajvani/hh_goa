@@ -32,9 +32,8 @@ Speak a question in English or any of the 13 native Indic languages. The system 
 
 ## 🔗 Submission Credentials
 * **Live Working Web Portal**: [hh-goa.onrender.com](https://hh-goa.onrender.com) *(first load after idle takes ~30s to spin up)*
-* **GitHub Repository**: *[GitHub Repo Link Placeholder]*
-* **Video 1 (Team Working Process - 90s)**: *[Upload Link / Video URL]*
-* **Video 2 (End-to-End System Demo)**: *[Upload Link / Video URL]*
+* **Video 1 (Detailed Technical Deep-Dive)**: [youtu.be/4FzrUFFhS18](https://youtu.be/4FzrUFFhS18)
+* **Video 2 (Product Demo Video)**: [youtu.be/IcSiq11f61E](https://youtu.be/IcSiq11f61E)
 * **Tag / Hashtag**: `#RAGInGoa` (Deadline: August 22, 2026)
 
 ---

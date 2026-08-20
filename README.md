@@ -121,13 +121,13 @@ The table below logs the latency percentiles (**P50** Median, **P70**, and **P10
 | Phase | Metric / Mode | P50 (Median) | P70 | P100 (Max) | Explanation |
 | :--- | :--- | :---: | :---: | :---: | :--- |
 | **Retrieval Only** | Keyword Search (BM25) | **19.3 ms** | **20.2 ms** | **42.7 ms** | Scans the raw text tokens across index mappings (Used in Production). |
-| **Retrieval Only** | Semantic Vector Search (FAISS) | **85.0 ms** | **130.0 ms** | **180.0 ms** | Scans the dense 21,000 vector space for nearest cosine matches (Local Dev only). |
+| **Retrieval Only** | Semantic Vector Search (FAISS) | **83.20 ms** | **133.0 ms** | **167 ms** | Scans the dense 21,000 vector space for nearest cosine matches (Local Dev only). |
 | **End-to-End RAG** | BM25 + Extractive Mode (LLM OFF) | **21.5 ms** | **23.1 ms** | **46.8 ms** | Total pipeline latency with **Conversational LLM toggled OFF** (0ms LLM time). |
 | **End-to-End RAG** | BM25 + Generative Mode (LLM ON) | ~750.0 ms | ~920.0 ms | ~1,500.0 ms | Total pipeline latency with **Conversational LLM toggled ON** (Groq Llama-3 API). |
 | **Speech-to-Text** | ElevenLabs Scribe STT API | ~1.2 s | ~1.5 s | ~2.1 s | Audio recording transcription (Independent of RAG times). |
 
 * **Success**: In Extractive Mode (LLM OFF), our total RAG latency (**21.5ms P50, 46.8ms P100**) beats the Hackathon's 200ms target line with room to spare.
-* **Semantic Target Latency (Sub-200ms Target Achieved)**: Local semantic search runs at **85.0ms (P50)** to **180.0ms (P100)** on CPU. It completes fully within the Hackathon's 200ms target limit. Encoding the query text into a vector using the MiniLM model plus running a mathematical similarity comparison across all 21,000 vectors on a local CPU introduces processing overhead compared to BM25's lightweight token scanning, but remains well within the target budget.
+* **Semantic Target Latency (Sub-200ms Target Achieved)**: Local semantic search runs at **83.0ms (P50)** to **167.0ms (P100)** on CPU. It completes fully within the Hackathon's 200ms target limit. Encoding the query text into a vector using the MiniLM model plus running a mathematical similarity comparison across all 21,000 vectors on a local CPU introduces processing overhead compared to BM25's lightweight token scanning, but remains well within the target budget.
 * **Chunk Count vs. Passage Count**: Yes, the number of chunks matches the passage count. Because the passages in the Hugging Face `MSMARCO-XI` dataset are already short (averaging 50–100 words), we index them directly without further splitting. Therefore, **the number of chunks is exactly equal to the number of passages (21,000 passages = 21,000 chunks)**.
 * **Warmup Note**: The very first query on server boot contains model compilation warmup times and is excluded from the active latency percentiles.
 

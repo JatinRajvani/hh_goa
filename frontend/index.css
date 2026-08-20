@@ -663,3 +663,38 @@ footer {
     transform: translateX(20px);
 }
 
+/* Suggestion Chips styling */
+.suggestions-container {
+    animation: fadeIn 0.5s ease;
+}
+
+.suggestion-chip-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.4;
+    width: 100%;
+}
+
+.suggestion-chip-btn:hover {
+    background: rgba(0, 230, 118, 0.08);
+    border-color: rgba(0, 230, 118, 0.3);
+    transform: translateY(-1px);
+}
+
+.suggestion-chip-btn i {
+    color: #00e676;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+

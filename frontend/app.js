@@ -387,6 +387,57 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // ----------------------------------------------------
+    // Dynamic Query Suggestion Chips
+    // ----------------------------------------------------
+    const langSelect = document.getElementById("lang-select");
+    const suggestionChips = document.getElementById("suggestion-chips");
+
+    const SUGGESTIONS = {
+        "en": [
+            "Why was the secret nuclear facility placed close to a large water body?",
+            "what was the immediate impact of the success of the manhattan project?"
+        ],
+        "hi": [
+            "मैनहट्टन परियोजना की सफलता का तुरंत क्या प्रभाव पड़ा?",
+            "विभिन्न प्रकार की सामाजिक सुरक्षा विकलांगता"
+        ],
+        "gu": [
+            "મેનહટન પ્રોજેક્ટની સફળતાની તાત્કાલિક અસર શું હતી?",
+            "વિવિધ પ્રકારની સામાજિક સુરક્ષા અક્ષમતા"
+        ],
+        "auto": [
+            "Why was the secret nuclear facility placed close to a large water body?",
+            "मैनहट्टन परियोजना की सफलता का तुरंत क्या प्रभाव पड़ा?",
+            "મેનહટન પ્રોજેક્ટની સફળતાની તાત્કાલિક અસર શું હતી?"
+        ]
+    };
+
+    function populateSuggestions() {
+        if (!suggestionChips || !langSelect) return;
+        suggestionChips.innerHTML = "";
+        
+        const selectedLang = langSelect.value;
+        const queries = SUGGESTIONS[selectedLang] || SUGGESTIONS["auto"];
+        
+        queries.forEach(q => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "suggestion-chip-btn";
+            btn.innerHTML = `<i class="fa-solid fa-lightbulb"></i> <span>${q}</span>`;
+            btn.addEventListener("click", () => {
+                queryInput.value = q;
+                submitTextQuery(q);
+            });
+            suggestionChips.appendChild(btn);
+        });
+    }
+
+    if (langSelect) {
+        langSelect.addEventListener("change", populateSuggestions);
+        populateSuggestions(); // Populate on load
+    }
+
     // Load overall benchmarks immediately on load
     loadEvaluationStats();
 });

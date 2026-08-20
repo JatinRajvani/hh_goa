@@ -9,7 +9,7 @@
 [![Dataset](https://img.shields.io/badge/Dataset-MSMARCO--XI-ffb020?style=for-the-badge)](https://huggingface.co/datasets/ai4bharat/MSMARCO-XI)
 
 > [!IMPORTANT]
-> 🚀 **Live Portal**: [hh-goa.onrender.com](https://hh-goa.onrender.com)
+> 🚀 **Live Portal**: [hh-goa.onrender.com](https://hh-goa-yxyy.onrender.com/)
 > 📹 **Detailed Architecture & Code Walkthrough**: [youtu.be/4FzrUFFhS18](https://youtu.be/4FzrUFFhS18)
 > 📹 **Product Demonstration Video**: [youtu.be/IcSiq11f61E](https://youtu.be/IcSiq11f61E)
 
